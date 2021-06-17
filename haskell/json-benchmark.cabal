@@ -1,0 +1,74 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.34.4.
+--
+-- see: https://github.com/sol/hpack
+
+name:           json-benchmark
+version:        0.1.0.0
+description:    Please see the README on GitHub at <https://github.com/githubuser/json-benchmark#readme>
+homepage:       https://github.com/githubuser/json-benchmark#readme
+bug-reports:    https://github.com/githubuser/json-benchmark/issues
+author:         Author name here
+maintainer:     example@example.com
+copyright:      2021 Author name here
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+    ChangeLog.md
+
+source-repository head
+  type: git
+  location: https://github.com/githubuser/json-benchmark
+
+library
+  exposed-modules:
+      Data.JSON
+      Data.Time.Extra
+      Lib
+  other-modules:
+      Paths_json_benchmark
+  hs-source-dirs:
+      src
+  build-depends:
+      aeson <=1.4.7.1
+    , base >=4.7 && <5
+    , bytestring <=0.10.10.1
+    , time <=1.12
+    , timeit <=2.0
+  default-language: Haskell2010
+
+executable json-benchmark-exe
+  main-is: Main.hs
+  other-modules:
+      Paths_json_benchmark
+  hs-source-dirs:
+      app
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      aeson <=1.4.7.1
+    , base >=4.7 && <5
+    , bytestring <=0.10.10.1
+    , json-benchmark
+    , time <=1.12
+    , timeit <=2.0
+  default-language: Haskell2010
+
+test-suite json-benchmark-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Paths_json_benchmark
+  hs-source-dirs:
+      test
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      aeson <=1.4.7.1
+    , base >=4.7 && <5
+    , bytestring <=0.10.10.1
+    , json-benchmark
+    , time <=1.12
+    , timeit <=2.0
+  default-language: Haskell2010
