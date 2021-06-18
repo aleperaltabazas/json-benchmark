@@ -77,7 +77,7 @@ Fastest read: 6 (at position 33)
 Slowest read: 703 (at position 1)
 Average read: 7.996
 
-=== Jackson: Default behaviour reusing type reference (over 1000 iterations) ===
+=== Jackson: Default behaviour reusing type reference over 1000 iterations ===
 
 First read: 7
 Last read: 7
