@@ -107,9 +107,9 @@ We see that this solution offers consistently low times too, and, in average, be
 
 ### Conclusions
 
-Honestly, with Jackson's caching I haven't really been able to find much reason to not use it (or any other JSON-object mapper, for that matter). Maybe if you're hard pressed for memory or you have _really_ high volume if might make sense, but in those cases, maybe the reasonable thing to do would be to migrate from the JVM to something quicker.
+Honestly, with Jackson's caching I haven't really been able to find much reason to not use it (or any other JSON-object mapper, for that matter). Maybe if you're hard pressed for memory or you have _really_ high volume it might make sense. But in those cases, maybe the more sensible thing to do would be to drop the JVM in favor of something quicker.
 
-One thing I did not is how times tend to decrease with every subsequent  iteration, and I believe that is because Java does some caching of sorts on its types (or I might just be talking shit and it just really fluctuates). I did some tests on that, and I found that if I added a delay between iterations, the average went somewhat higher (note: I did far fewer iterations with this scheme because I didn't want to sit here for an enternity).
+One thing I did note is how times tend to decrease with every subsequent iteration, and I believe that is because Java does some caching of sorts (or I might just be talking shit and it just really fluctuates). I did some tests on that, and I found that if I added a delay of 1 second between iterations, the average went higher (note: I did far fewer iterations with this scheme because I didn't want to sit here for an enternity).
 
 ```
 === Jackson: Default behaviour with delay over 10 iterations ===
