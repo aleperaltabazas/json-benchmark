@@ -32,7 +32,7 @@ Although _I did_ get some outliers with e-4 instead of e-5, but overall, they se
 
 So, in average, 0.00006 ms.
 
-## Conclusions
+### Conclusions
 
 I strongly suspect I'm fucking up somewhere and the parsing isn't actually being executed due to Haskell's lazy evaluation. I will look into [criterion](https://hackage.haskell.org/package/criterion-0.5.0.0/docs/Criterion-Main.html) to make some better conclusions.
 
