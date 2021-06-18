@@ -1,7 +1,6 @@
 package com.github.aleperaltabazas.json.benchmark
 
 import com.fasterxml.jackson.annotation.JsonInclude
-import com.fasterxml.jackson.core.Version
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -22,33 +21,50 @@ val test: String = File("../json/test.json")
 
 fun main() {
     jacksonReflectionRead()
+    intermediate()
+}
+
+fun defaultObjectMapper() = ObjectMapper().apply {
+    registerModule(KotlinModule())
+    registerModule(JavaTimeModule())
+    registerModule(JodaModule())
+    registerModule(AfterburnerModule())
+    configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+    propertyNamingStrategy = PropertyNamingStrategies.LOWER_CAMEL_CASE
+    setSerializationInclusion(JsonInclude.Include.NON_NULL)
 }
 
 private fun jacksonReflectionRead() = runBlocking {
-    fun defaultObjectMapper() = ObjectMapper().apply {
-        registerModule(KotlinModule())
-        registerModule(JavaTimeModule())
-        registerModule(JodaModule())
-        registerModule(AfterburnerModule())
-        configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-        propertyNamingStrategy = PropertyNamingStrategies.LOWER_CAMEL_CASE
-        setSerializationInclusion(JsonInclude.Include.NON_NULL)
-    }
 
     val objectMapper = defaultObjectMapper()
 
-    bench("Jackson: Default behaviour (reflection field caching) over 100 iterations", 100) {
+    bench("Jackson: Default behaviour (reflection field caching)", 1000) {
         objectMapper.readValue(test, object : TypeReference<List<PersonByReflection>>() {})
     }
 
-    bench("Jackson: No caching over 100 iterations", 100) {
-        defaultObjectMapper().readValue(test, object : TypeReference<List<PersonByReflection>>() {})
+    bench("Jackson: No type reference", 1000) {
+        objectMapper.readValue(test, List::class.java)
     }
 
     val ref = object : TypeReference<List<PersonByReflection>>() {}
 
-    bench("Jackson: Default behaviour without recreating the typeref over 100 iterations", 100) {
+    bench("Jackson: Default behaviour reusing type reference", 1000) {
         objectMapper.readValue(test, ref)
+    }
+
+    bench("Jackson: Default behaviour with delay", 10, 1000) {
+        objectMapper.readValue(test, object : TypeReference<List<PersonByReflection>>() {})
+    }
+}
+
+private fun intermediate() = runBlocking {
+    val objectMapper = defaultObjectMapper()
+    bench("Intermediate", 1000) {
+        objectMapper.readTree(test).map { PersonByReflection.parse(it) }
+    }
+
+    bench("Intermediate with delay", 10, 1000) {
+        objectMapper.readTree(test).map { PersonByReflection.parse(it) }
     }
 }
 
@@ -68,7 +84,7 @@ private suspend fun bench(title: String, iterations: Int, iterationDelay: Long? 
     val slowest = durations.maxOrNull()!!
     val average = durations.average()
 
-    println("=== $title ===")
+    println("=== $title over $iterations iterations ===")
     println()
     println("First read: ${durations.first()}")
     println("Last read: ${durations.last()}")

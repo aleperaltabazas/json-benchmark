@@ -29,6 +29,7 @@ data class PersonByReflection(
     val company: String,
     val email: String,
     val address: String,
+    val phone: String,
     val about: String,
     val registered: String,
     val latitude: Double,
@@ -48,6 +49,7 @@ data class PersonByReflection(
             name = node.get("name").asText(),
             gender = node.get("gender").asText(),
             company = node.get("company").asText(),
+            phone = node.get("phone").asText(),
             email = node.get("email").asText(),
             address = node.get("address").asText(),
             about = node.get("about").asText(),
@@ -79,6 +81,7 @@ data class PersonByReflection(
                     "tags" to "[${tags.joinToString(",") { it.escape() }}]",
                     "friends" to "[${friends.joinToString(",") { Friend.write(it) }}]",
                     "guid" to guid.toString(),
+                    "phone" to phone,
                 )
                     .map { (k, v) -> "${k.escape()}:$v" }
                     .joinToString(",") +
