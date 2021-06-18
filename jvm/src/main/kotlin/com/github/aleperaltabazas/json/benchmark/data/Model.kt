@@ -15,7 +15,7 @@ interface JsonParseable<T> {
     fun Any.escape() = "\"$this\""
 }
 
-data class Person(
+data class PersonByReflection(
     @JsonProperty("_id") val id: String,
     val index: Int,
     val guid: UUID,
@@ -36,8 +36,8 @@ data class Person(
     val tags: List<String>,
     val friends: List<Friend>,
 ) {
-    companion object : JsonParseable<Person> {
-        override fun parse(node: JsonNode): Person = Person(
+    companion object : JsonParseable<PersonByReflection> {
+        override fun parse(node: JsonNode): PersonByReflection = PersonByReflection(
             id = node.get("_id").asText(),
             index = node.get("index").asInt(),
             isActive = node.get("isActive").asBoolean(),
@@ -59,7 +59,7 @@ data class Person(
             guid = UUID.fromString(node.get("guid").asText())
         )
 
-        override fun write(person: Person): String = with(person) {
+        override fun write(person: PersonByReflection): String = with(person) {
             "{" +
                 mapOf(
                     "id" to id.escape(),
@@ -88,12 +88,12 @@ data class Person(
 }
 
 data class Friend(
-    val id: String,
+    val id: Int,
     val name: String,
 ) {
     companion object : JsonParseable<Friend> {
         override fun parse(node: JsonNode): Friend = Friend(
-            id = node.get("id").asText(),
+            id = node.get("id").asInt(),
             name = node.get("name").asText(),
         )
 

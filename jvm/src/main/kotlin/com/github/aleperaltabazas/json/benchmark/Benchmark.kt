@@ -1,101 +1,79 @@
 package com.github.aleperaltabazas.json.benchmark
 
 import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.core.Version
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.PropertyNamingStrategies
 import com.fasterxml.jackson.datatype.joda.JodaModule
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.afterburner.AfterburnerModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
-import com.github.aleperaltabazas.json.benchmark.data.Person
-import com.google.common.io.Resources
+import com.github.aleperaltabazas.json.benchmark.data.PersonByReflection
+import com.github.aleperaltabazas.json.benchmark.functions.diff
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
+import java.io.File
 import java.nio.charset.StandardCharsets
 
-val objectMapper = jacksonObjectMapper().also {
-    it.registerModule(KotlinModule())
-    it.registerModule(JavaTimeModule())
-    it.registerModule(JodaModule())
-    it.registerModule(AfterburnerModule())
-    it.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-    it.propertyNamingStrategy = PropertyNamingStrategies.LOWER_CAMEL_CASE
-    it.setSerializationInclusion(JsonInclude.Include.NON_NULL)
-}
-
-val test: String = Resources.getResource("test.json")
-    .let { Resources.toString(it, StandardCharsets.UTF_8) }
-    ?: throw RuntimeException("Error parsing test.json")
+val test: String = File("../json/test.json")
+    .readText(StandardCharsets.UTF_8)
 
 fun main() {
-    println("=== READ TIME ===\n")
-
-    pureJacksonRead()
-    treeRead()
-
-    println("\n=== WRITE TIME ===\n")
-
-    val persons = objectMapper.readValue<List<Person>>(test)
-
-    var start = System.currentTimeMillis()
-    persons.forEach(objectMapper::writeValueAsString)
-    var end = System.currentTimeMillis()
-
-    println("Jackson write: ${end - start} ms")
-
-    start = System.currentTimeMillis()
-    persons.forEach(Person.Companion::write)
-    end = System.currentTimeMillis()
-
-    println("Tree write: ${end - start} ms")
+    jacksonReflectionRead()
 }
 
-private fun pureJacksonRead() {
-    val action = {
-        objectMapper.readValue(test, object : TypeReference<List<Person>>() {})
-        Unit
+private fun jacksonReflectionRead() = runBlocking {
+    fun defaultObjectMapper() = ObjectMapper().apply {
+        registerModule(KotlinModule())
+        registerModule(JavaTimeModule())
+        registerModule(JodaModule())
+        registerModule(AfterburnerModule())
+        configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+        propertyNamingStrategy = PropertyNamingStrategies.LOWER_CAMEL_CASE
+        setSerializationInclusion(JsonInclude.Include.NON_NULL)
     }
 
-    val averageOver1 = averageDuration(1, action)
-    println("Pure jackson average over 1 iterations: $averageOver1 ms")
+    val objectMapper = defaultObjectMapper()
 
-    val averageOver10 = averageDuration(10, action)
-    println("Pure jackson average over 10 iterations: $averageOver10 ms")
+    bench("Jackson: Default behaviour (reflection field caching) over 100 iterations", 100) {
+        objectMapper.readValue(test, object : TypeReference<List<PersonByReflection>>() {})
+    }
 
-    val averageOver100 = averageDuration(100, action)
-    println("Pure jackson average over 100 iterations: $averageOver100 ms")
+    bench("Jackson: No caching over 100 iterations", 100) {
+        defaultObjectMapper().readValue(test, object : TypeReference<List<PersonByReflection>>() {})
+    }
 
-    val averageOver1000 = averageDuration(1000, action)
-    println("Pure jackson average over 1000 iterations: $averageOver1000 ms")
+    val ref = object : TypeReference<List<PersonByReflection>>() {}
+
+    bench("Jackson: Default behaviour without recreating the typeref over 100 iterations", 100) {
+        objectMapper.readValue(test, ref)
+    }
 }
 
-private fun treeRead() {
-    val action = { objectMapper.readTree(test).forEach { Person.parse(it) } }
-
-    val averageOver1 = averageDuration(1, action)
-    println("Tree average over 1 iterations: $averageOver1 ms")
-
-    val averageOver10 = averageDuration(10, action)
-    println("Tree average over 10 iterations: $averageOver10 ms")
-
-    val averageOver100 = averageDuration(100, action)
-    println("Tree average over 100 iterations: $averageOver100 ms")
-
-    val averageOver1000 = averageDuration(1000, action)
-    println("Tree average over 1000 iterations: $averageOver1000 ms")
-}
-
-private fun averageDuration(iterations: Int = 100, action: () -> Unit): Double {
-    val averages = mutableListOf<Long>()
+private suspend fun bench(title: String, iterations: Int, iterationDelay: Long? = null, eff: () -> Any) {
+    val durations = mutableListOf<Long>()
 
     for (i in 1..iterations) {
-        val start = System.currentTimeMillis()
-        action()
-        val end = System.currentTimeMillis()
+        val (res, d) = diff {
+            val e = eff()
+        }
 
-        averages.add(end - start)
+        durations.add(d)
+        iterationDelay?.let { delay(it) }
     }
 
-    return averages.average()
+    val fastest = durations.minOrNull()!!
+    val slowest = durations.maxOrNull()!!
+    val average = durations.average()
+
+    println("=== $title ===")
+    println()
+    println("First read: ${durations.first()}")
+    println("Last read: ${durations.last()}")
+    println("Fastest read: $fastest (at position ${durations.indexOf(fastest) + 1})")
+    println("Slowest read: $slowest (at position ${durations.indexOf(slowest) + 1})")
+    println("Average read: $average")
+    println()
 }
