@@ -21,8 +21,6 @@ import GHC.Generics (Generic)
 import Data.Attoparsec.ByteString
 import Data.Attoparsec.ByteString.Char8
 import Data.Attoparsec.Combinator
--- import Text.Parsec
--- import Text.Parsec.ByteString.Lazy (Parser)
 
 data Person
   = Person

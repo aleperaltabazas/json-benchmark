@@ -73,7 +73,7 @@ private suspend fun bench(title: String, iterations: Int, iterationDelay: Long? 
 
     for (i in 1..iterations) {
         val (res, d) = diff {
-            val e = eff()
+            eff()
         }
 
         durations.add(d)

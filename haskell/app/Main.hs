@@ -11,11 +11,11 @@ main = do
   let file = "../json/test.json"
   bl <- BL.readFile file
   putStrLn "AESON"
-  (_, duration) <- bench 10 (return $ parseAeson bl :: IO [Person])
+  (_, duration) <- bench 1000 (return $ parseAeson bl :: IO [Person])
   putStrLn $ show (realToFrac duration * 1000) ++ "ms"
   bs <- BS.readFile file
   putStrLn "PARSEC"
-  (_, duration) <- bench 10 (return $ parseParsec bs)
+  (_, duration) <- bench 1000 (return $ parseParsec bs)
   putStrLn $ show (realToFrac duration * 1000) ++ "ms"
 
 average xs = (/ (fromIntegral $ length xs)) . sum $ xs
