@@ -32,7 +32,7 @@ Although _I did_ get some outliers with e-4 instead of e-5, but overall, they se
 
 So, in average, 0.00006 ms.
 
-## Conclusions
+### Conclusions
 
 I strongly suspect I'm fucking up somewhere and the parsing isn't actually being executed due to Haskell's lazy evaluation. I will look into [criterion](https://hackage.haskell.org/package/criterion-0.5.0.0/docs/Criterion-Main.html) to make some better conclusions.
 
@@ -77,7 +77,7 @@ Fastest read: 6 (at position 33)
 Slowest read: 703 (at position 1)
 Average read: 7.996
 
-=== Jackson: Default behaviour reusing type reference (over 1000 iterations) ===
+=== Jackson: Default behaviour reusing type reference over 1000 iterations ===
 
 First read: 7
 Last read: 7
@@ -107,9 +107,9 @@ We see that this solution offers consistently low times too, and, in average, be
 
 ### Conclusions
 
-Honestly, with Jackson's caching I haven't really been able to find much reason to not use it (or any other JSON-object mapper, for that matter). Maybe if you're hard pressed for memory or you have _really_ high volume if might make sense, but in those cases, maybe the reasonable thing to do would be to migrate from the JVM to something quicker.
+Honestly, with Jackson's caching I haven't really been able to find much reason to not use it (or any other JSON-object mapper, for that matter). Maybe if you're hard pressed for memory or you have _really_ high volume it might make sense. But in those cases, maybe the more sensible thing to do would be to drop the JVM in favor of something quicker.
 
-One thing I did not is how times tend to decrease with every subsequent  iteration, and I believe that is because Java does some caching of sorts on its types (or I might just be talking shit and it just really fluctuates). I did some tests on that, and I found that if I added a delay between iterations, the average went somewhat higher (note: I did far fewer iterations with this scheme because I didn't want to sit here for an enternity).
+One thing I did note is how times tend to decrease with every subsequent iteration, and I believe that is because Java does some caching of sorts (or I might just be talking shit and it just really fluctuates). I did some tests on that, and I found that if I added a delay of 1 second between iterations, the average went higher (note: I did far fewer iterations with this scheme because I didn't want to sit here for an enternity).
 
 ```
 === Jackson: Default behaviour with delay over 10 iterations ===
